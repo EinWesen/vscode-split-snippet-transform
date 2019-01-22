@@ -10,13 +10,13 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:einwesen.split-snippet-transform.fromclipboard"
+		"onCommand:einwesen.split-snippet-transform.commands.split_with_clipboard"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
+		"commands": [ 
 			{
-				"command": "einwesen.split-snippet-transform.fromclipboard",
+				"command": "einwesen.split-snippet-transform.commands.split_with_clipboard",
 				"title": "Transformation: Split and use Clipboard as Template"
 			}
 		]
