@@ -11,7 +11,7 @@ function applySplitReplaceTransform(snippetText : string, seperator : string) {
 				let selectionText = editor.document.getText(selection);
 				
 				if (selectionText.length > 0) {
-					const selectionParts : string[] = selectionText.split('|');
+					const selectionParts : string[] = selectionText.split(seperator);
 
 					selectionText = snippetText;
 					for (var i=0; i < selectionParts.length; i++) {
