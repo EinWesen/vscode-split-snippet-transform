@@ -2,6 +2,10 @@
 	"name": "split-snippet-transform",
 	"displayName": "Split Snippet Transform",
 	"description": "Split a selection and use its part in a snippet like manner",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/EinWesen/vscode-split-snippet-transform"
+    },	
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.30.0"
