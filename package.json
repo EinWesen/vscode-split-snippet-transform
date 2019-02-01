@@ -15,14 +15,24 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:einwesen.split-snippet-transform.commands.split_with_clipboard"
+		"onCommand:einwesen.split-snippet-transform.commands.insert_clipboard",
+		"onCommand:einwesen.split-snippet-transform.commands.insert_clipboard_with_split",
+		"onCommand:einwesen.split-snippet-transform.commands.insert_snippet"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [ 
+		"commands": [ 	
 			{
-				"command": "einwesen.split-snippet-transform.commands.split_with_clipboard",
-				"title": "Transformation: Split and use Clipboard as Template"
+				"command": "einwesen.split-snippet-transform.commands.insert_clipboard",
+				"title": "Insert Snippet: Clipboard"
+			},
+			{
+				"command": "einwesen.split-snippet-transform.commands.insert_clipboard_with_split",
+				"title": "Insert Snippet: Clipboard with SplitTransform"
+			},
+			{
+				"command": "einwesen.split-snippet-transform.commands.insert_snippet",
+				"title": "Insert Snippet: ... with SplitTransform"
 			}
 		]
 	},
