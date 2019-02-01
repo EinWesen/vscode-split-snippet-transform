@@ -4,30 +4,41 @@ import * as vscode from 'vscode';
 import * as snippetmgr from './snippetmanager';
 
 
+function replaceSplitVars(selectionText:string, snippetText: string, seperator: string):string {
+	
+	if (selectionText.length > 0) {
+		const selectionParts: string[] = selectionText.split(seperator);
+			
+		selectionText = snippetText;
+		for (var i = 0; i < selectionParts.length; i++) {
+			const varname = "${TM_SELECTED_TEXT[" + i + "]}";
+			selectionText = selectionText.replace(varname, selectionParts[i]);
+		}
+	
+		return selectionText;
+	} else {
+		return snippetText;
+	}
+
+}
+
 function applySplitReplaceTransform(snippetText: string, seperator: string) {
+
 	const editor = vscode.window.activeTextEditor;
 	if (editor !== undefined) {
-		editor.edit((editBuilder) => {
-			editor.selections.forEach((selection) => {
-				let selectionText = editor.document.getText(selection);
-
-				if (selectionText.length > 0) {
-					const selectionParts: string[] = selectionText.split(seperator);
-
-					selectionText = snippetText;
-					for (var i = 0; i < selectionParts.length; i++) {
-						const varname = "${TM_SELECTED_TEXT[" + i + "]}";
-						selectionText = selectionText.replace(varname, selectionParts[i]);
-					}
-					editBuilder.replace(selection, selectionText);
-					//editBuilder.insert(selection.active, newText);
-				} else {
-					editBuilder.replace(selection, snippetText);
-				}
-			});
-		});
-
+		if (editor.selections.length > 0) {
+			if (editor.selections.length === 1) {
+				editor.insertSnippet(new vscode.SnippetString(replaceSplitVars(editor.document.getText(editor.selection), snippetText, seperator)));
+			} else {
+				editor.edit((editBuilder) => {
+					editor.selections.forEach((selection) => {
+						editBuilder.replace(selection, replaceSplitVars(editor.document.getText(selection), snippetText, seperator));
+					});
+				});
+			}	
+		}	
 	}
+	
 }
 
 function getCurrentSnippetText(): Thenable<string | undefined> {
@@ -65,7 +76,10 @@ export function activate(context: vscode.ExtensionContext) {
 			if (snippetText === null || snippetText === undefined || snippetText.trim() === '') {
 				vscode.window.showErrorMessage('SnippetText is empty');
 			} else {
-				applySplitReplaceTransform(snippetText, "");
+				const editor = vscode.window.activeTextEditor;
+				if ( editor !== undefined) {
+					editor.insertSnippet(new vscode.SnippetString(snippetText));
+				}
 			}
 		}/*, function (reason) {}*/);
 	}));
