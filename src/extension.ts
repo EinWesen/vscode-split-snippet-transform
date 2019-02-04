@@ -22,20 +22,44 @@ function replaceSplitVars(selectionText:string, snippetText: string, seperator: 
 
 }
 
+function convertSplitVars(snippetText: string, seperator: string):string {
+	
+	if (snippetText.length > 0) {				
+		// clean seperator 
+		seperator = seperator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+		const internalTransform = '$${TM_SELECTED_TEXT/((.*?'+seperator+'){$1})([^'+seperator+']*)(.*)/$$3/gu}';
+
+		// Replace extensions variable format with a natively supported transform (which should match what we want)
+		return snippetText.replace(/\$\{TM_SELECTED_TEXT\[(\d*)\]\}/g, internalTransform);
+	} else {
+		return snippetText;
+	}
+
+}
+
+
 function applySplitReplaceTransform(snippetText: string, seperator: string) {
 
 	const editor = vscode.window.activeTextEditor;
+	const useNativeTransform = vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('useNativeTransform');
+
 	if (editor !== undefined) {
-		if (editor.selections.length > 0) {
-			if (editor.selections.length === 1) {
-				editor.insertSnippet(new vscode.SnippetString(replaceSplitVars(editor.document.getText(editor.selection), snippetText, seperator)));
-			} else {
-				editor.edit((editBuilder) => {
-					editor.selections.forEach((selection) => {
-						editBuilder.replace(selection, replaceSplitVars(editor.document.getText(selection), snippetText, seperator));
+		
+		if (useNativeTransform) {
+			editor.insertSnippet(new vscode.SnippetString(convertSplitVars(snippetText, seperator)), editor.selections);
+		} else {
+			if (editor.selections.length > 0) {
+				if (editor.selections.length === 1) {
+					editor.insertSnippet(new vscode.SnippetString(replaceSplitVars(editor.document.getText(editor.selection), snippetText, seperator)));
+				} else {
+					editor.edit((editBuilder) => {
+						editor.selections.forEach((selection) => {
+							editBuilder.replace(selection, replaceSplitVars(editor.document.getText(selection), snippetText, seperator));
+						});
 					});
-				});
-			}	
+				}	
+			}
 		}	
 	}
 	

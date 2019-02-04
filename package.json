@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/EinWesen/vscode-split-snippet-transform"
     },	
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"engines": {
 		"vscode": "^1.30.0"
 	},
@@ -34,7 +34,18 @@
 				"command": "einwesen.split-snippet-transform.commands.insert_snippet",
 				"title": "Insert Snippet: ... with SplitTransform"
 			}
-		]
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Split Snippet Transform configuration",
+			"properties": {
+				"einwesen.split-snippet-transform.useNativeTransform": {
+					"type": "boolean",
+					"default": true,
+					"description": "Try to convert the split variables to native transform"
+				}
+			}
+		}		
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
