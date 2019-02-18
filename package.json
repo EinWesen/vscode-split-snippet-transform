@@ -9,7 +9,7 @@
     },	
 	"version": "0.0.3",
 	"engines": {
-		"vscode": "^1.30.0"
+		"vscode": "^1.24.1"
 	},
 	"categories": [
 		"Other"

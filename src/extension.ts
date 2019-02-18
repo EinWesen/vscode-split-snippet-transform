@@ -73,10 +73,21 @@ function getCurrentSnippetText(): Thenable<string | undefined> {
 	}
 }
 
+function isOldVersion():boolean {
+
+	let parts = vscode.version.split(".");
+
+	if (parts[0] == "1") {
+		return parseInt(parts[1])<=24;
+	} else {
+		return false;
+	}
+
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
@@ -108,21 +119,45 @@ export function activate(context: vscode.ExtensionContext) {
 		}/*, function (reason) {}*/);
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', () => {
-		vscode.window.showQuickPick<snippetmgr.SnippetQPItem>(snippetmgr.getSnippetQuickPickItems(), { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
-			(item: snippetmgr.SnippetQPItem | undefined) => {
-				if (item !== undefined) {
-					vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
-						if (seperator !== undefined) {
-							applySplitReplaceTransform(item.snippetBody.join("\r\n"), seperator);
+
+	// Small BugFix this, Version does not handle a rejected promise in QuickPick well
+	if (isOldVersion()) {
+		context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', () => {
+			snippetmgr.getSnippetQuickPickItems().then((items) => {
+				vscode.window.showQuickPick<snippetmgr.SnippetQPItem>(items, { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
+					(item: snippetmgr.SnippetQPItem | undefined) => {
+						if (item !== undefined) {
+							vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
+								if (seperator !== undefined) {
+									applySplitReplaceTransform(item.snippetBody.join("\r\n"), seperator);
+								}
+							});
 						}
-					});
-				}
+					}, (err) => {
+						vscode.window.showErrorMessage(err.message);
+					}
+				);
 			}, (err) => {
 				vscode.window.showErrorMessage(err.message);
-			}
-		);
-	}));
+			});
+		}));
+	} else {
+		context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', () => {
+			vscode.window.showQuickPick<snippetmgr.SnippetQPItem>(snippetmgr.getSnippetQuickPickItems(), { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
+				(item: snippetmgr.SnippetQPItem | undefined) => {
+					if (item !== undefined) {
+						vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
+							if (seperator !== undefined) {
+								applySplitReplaceTransform(item.snippetBody.join("\r\n"), seperator);
+							}
+						});
+					}
+				}, (err) => {
+					vscode.window.showErrorMessage(err.message);
+				}
+			);
+		}));
+	}
 
 }
 
