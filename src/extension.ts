@@ -65,19 +65,11 @@ function applySplitReplaceTransform(snippetText: string, seperator: string) {
 	
 }
 
-function getCurrentSnippetText(): Thenable<string | undefined> {
-	if (vscode.env.clipboard !== undefined) {
-		return vscode.env.clipboard.readText();
-	} else {
-		return vscode.window.showInputBox({ prompt: 'Insert snippet text', value: '' });
-	}
-}
-
 function isOldVersion():boolean {
 
 	let parts = vscode.version.split(".");
 
-	if (parts[0] == "1") {
+	if (parts[0] === "1") {
 		return parseInt(parts[1])<=24;
 	} else {
 		return false;
@@ -92,46 +84,21 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_clipboard_with_split', () => {
-		getCurrentSnippetText().then(function (snippetText) {
-			if (snippetText === null || snippetText === undefined || snippetText.trim() === '') {
-				vscode.window.showErrorMessage('SnippetText is empty');
-			} else {
-				vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
-					if (seperator !== undefined) {
-						applySplitReplaceTransform(snippetText, seperator);
-					}
-				});
-			}
-		}/*, function (reason) {}*/);
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_clipboard', () => {
-		getCurrentSnippetText().then(function (snippetText) {
-			if (snippetText === null || snippetText === undefined || snippetText.trim() === '') {
-				vscode.window.showErrorMessage('SnippetText is empty');
-			} else {
-				const editor = vscode.window.activeTextEditor;
-				if ( editor !== undefined) {
-					editor.insertSnippet(new vscode.SnippetString(snippetText));
-				}
-			}
-		}/*, function (reason) {}*/);
-	}));
-
 
 	// Small BugFix this, Version does not handle a rejected promise in QuickPick well
 	if (isOldVersion()) {
 		context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', () => {
 			snippetmgr.getSnippetQuickPickItems().then((items) => {
-				vscode.window.showQuickPick<snippetmgr.SnippetQPItem>(items, { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
-					(item: snippetmgr.SnippetQPItem | undefined) => {
+				vscode.window.showQuickPick<snippetmgr.ISnippetQPItem>(items, { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
+					(item: snippetmgr.ISnippetQPItem | undefined) => {
 						if (item !== undefined) {
 							vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
 								if (seperator !== undefined) {
-									applySplitReplaceTransform(item.snippetBody.join("\r\n"), seperator);
+									item.getSnippetText().then((text) => {
+										applySplitReplaceTransform(text, seperator);																														
+									});
 								}
-							});
+							}, (err) => {vscode.window.showErrorMessage(err.message);});
 						}
 					}, (err) => {
 						vscode.window.showErrorMessage(err.message);
@@ -143,12 +110,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 	} else {
 		context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', () => {
-			vscode.window.showQuickPick<snippetmgr.SnippetQPItem>(snippetmgr.getSnippetQuickPickItems(), { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
-				(item: snippetmgr.SnippetQPItem | undefined) => {
+			vscode.window.showQuickPick<snippetmgr.ISnippetQPItem>(snippetmgr.getSnippetQuickPickItems(), { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
+				(item: snippetmgr.ISnippetQPItem | undefined) => {
 					if (item !== undefined) {
 						vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
 							if (seperator !== undefined) {
-								applySplitReplaceTransform(item.snippetBody.join("\r\n"), seperator);
+								item.getSnippetText().then((text) => {
+									applySplitReplaceTransform(text, seperator);																														
+								});
 							}
 						});
 					}

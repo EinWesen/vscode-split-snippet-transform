@@ -7,7 +7,11 @@ interface IParsedSnippetFile {
     snippetMap:any;
 }
 
-export class SnippetQPItem implements vscode.QuickPickItem {
+export interface ISnippetQPItem extends vscode.QuickPickItem {
+    getSnippetText():Thenable<string>;
+}
+
+class SnippetUserCodeQPItem implements ISnippetQPItem {
     snippetBody:string[];
     label:string;
     description:string;
@@ -17,6 +21,34 @@ export class SnippetQPItem implements vscode.QuickPickItem {
         this.label = item.prefix;
         this.description = "(" + file + ")";
         this.detail = item.description;
+    }
+    getSnippetText():Thenable<string> {
+        return Promise.resolve(this.snippetBody.join("\r\n"));
+    }
+}
+
+class SnippetClipboardQPItem implements ISnippetQPItem {
+    label = '[Clipboard]';
+    description = '';
+    detail = 'The whole current content will be used';
+    getSnippetText():Thenable<string> {
+        return vscode.env.clipboard.readText();
+    }
+}
+
+class SnippetDocumentQPItem implements ISnippetQPItem {
+    document:vscode.TextDocument;
+    label:string;
+    description:string;
+    detail:string;
+    constructor(doc:vscode.TextDocument, index:number) {
+        this.document = doc;
+        this.label = 'TabContent ('+index+')';
+        this.description = "(" + doc.fileName + ")";
+        this.detail = 'The whole current content will be used';
+    }
+    getSnippetText():Thenable<string> {
+        return Promise.resolve(this.document.getText());
     }
 }
 
@@ -85,17 +117,42 @@ function getParsedSnippetFiles():Thenable<IParsedSnippetFile[]> {
     return promise;
 }   
 
-export function getSnippetQuickPickItems():Thenable<SnippetQPItem[]> {
+export function getSnippetQuickPickItems():Thenable<ISnippetQPItem[]> {
     
-    const promise = new Promise<SnippetQPItem[]>((resolve, reject) => {
+    const items:ISnippetQPItem[] = [];
+
+    if (vscode.env.clipboard) {
+        if (vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('showClipboardAsSnippet')) {
+            items.push(new SnippetClipboardQPItem());
+        }
+    }
+    
+    if (vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('showDocumentsAsSnippet')) {
+        vscode.workspace.textDocuments.forEach((document, index) => {
+            if (!document.isClosed && document.fileName !== '/global-snippets') {                
+                
+                if (document.uri.scheme === 'untitled' || document.uri.scheme === 'file') {
+                    if (vscode.window.activeTextEditor !== undefined) {                
+                        if (vscode.window.activeTextEditor.document !== document) {
+                            items.push(new SnippetDocumentQPItem(document, index));
+                        }
+                    } else {
+                        items.push(new SnippetDocumentQPItem(document, index));
+                    }
+                }                 
+            } 
+        });
+    }
+
+    const promiseFiles = new Promise<ISnippetQPItem[]>((resolve, reject) => {
+        
         getParsedSnippetFiles().then((parsedFiles) => {
             try {
-                const items:SnippetQPItem[] = [];
                 if (parsedFiles) {
                     parsedFiles.forEach(file => {
                         const obj = file.snippetMap;                        
                         for (let key in obj) {
-                            items.push(new SnippetQPItem(file.filename, key, obj[key]));
+                            items.push(new SnippetUserCodeQPItem(file.filename, key, obj[key]));
                         }                        
                     });
                 }
@@ -108,5 +165,5 @@ export function getSnippetQuickPickItems():Thenable<SnippetQPItem[]> {
 		});
     });
 
-    return promise;
+    return promiseFiles;
 }
