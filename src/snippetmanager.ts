@@ -81,7 +81,7 @@ function pickingRelease(name:string) {
     return [extansionPath,delimiter];
 }
 
-function getParsedSnippetFiles():Thenable<IParsedSnippetFile[]> {
+function getParsedSnippetFiles():IParsedSnippetFile[] {
     
     let extansionPath:string;
     let delimiter = "/";
@@ -95,26 +95,21 @@ function getParsedSnippetFiles():Thenable<IParsedSnippetFile[]> {
         [extansionPath, delimiter] = pickingRelease("Code");
     }
 
-    const promise = new Promise<IParsedSnippetFile[]>((resolve, reject) => {        
-        const result:IParsedSnippetFile[] = [];        
-        const filedir = extansionPath + "snippets"+delimiter;
-        try {
-            fs.readdirSync(filedir).forEach(f => {
-                const userSnippetsFile = filedir + f.toString();
-                try {
-                    const jsnonobject = JSON.parse(fs.readFileSync(userSnippetsFile).toString());
-                    result.push({filename: userSnippetsFile, snippetMap:jsnonobject});
-                } catch (je) {
-                    throw new Error(f.toString() + " : " + je.message);
-                }
-            }); 
-            resolve(result);
-        } catch (e) {
-            reject(e);
-        }
-    });
 
-    return promise;
+    const result:IParsedSnippetFile[] = [];        
+    const filedir = extansionPath + "snippets"+delimiter;
+
+    fs.readdirSync(filedir).forEach(f => {
+        const userSnippetsFile = filedir + f.toString();
+        try {
+            const jsnonobject = JSON.parse(fs.readFileSync(userSnippetsFile).toString());
+            result.push({filename: userSnippetsFile, snippetMap:jsnonobject});
+        } catch (je) {
+            throw new Error(f.toString() + " : " + je.message);
+        }
+    }); 
+
+    return result;
 }   
 
 export function getSnippetQuickPickItems():Thenable<ISnippetQPItem[]> {
@@ -146,23 +141,20 @@ export function getSnippetQuickPickItems():Thenable<ISnippetQPItem[]> {
 
     const promiseFiles = new Promise<ISnippetQPItem[]>((resolve, reject) => {
         
-        getParsedSnippetFiles().then((parsedFiles) => {
-            try {
-                if (parsedFiles) {
-                    parsedFiles.forEach(file => {
-                        const obj = file.snippetMap;                        
-                        for (let key in obj) {
-                            items.push(new SnippetUserCodeQPItem(file.filename, key, obj[key]));
-                        }                        
-                    });
-                }
-                resolve(items);
-            } catch (e) {
-                reject(e);
-            }
-		}, (err) => {
-			reject(err);
-		});
+        try {
+            const parsedFiles = getParsedSnippetFiles();
+
+            parsedFiles.forEach(file => {
+                const obj = file.snippetMap;                        
+                for (let key in obj) {
+                    items.push(new SnippetUserCodeQPItem(file.filename, key, obj[key]));
+                }                        
+            });
+
+            resolve(items);
+        } catch (e) {
+            reject(e);
+        }
     });
 
     return promiseFiles;

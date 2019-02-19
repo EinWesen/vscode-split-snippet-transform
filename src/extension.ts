@@ -85,48 +85,32 @@ export function activate(context: vscode.ExtensionContext) {
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 
-	// Small BugFix this, Version does not handle a rejected promise in QuickPick well
-	if (isOldVersion()) {
-		context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', () => {
-			snippetmgr.getSnippetQuickPickItems().then((items) => {
-				vscode.window.showQuickPick<snippetmgr.ISnippetQPItem>(items, { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
-					(item: snippetmgr.ISnippetQPItem | undefined) => {
-						if (item !== undefined) {
-							vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
-								if (seperator !== undefined) {
-									item.getSnippetText().then((text) => {
-										applySplitReplaceTransform(text, seperator);																														
-									});
-								}
-							}, (err) => {vscode.window.showErrorMessage(err.message);});
-						}
-					}, (err) => {
-						vscode.window.showErrorMessage(err.message);
-					}
-				);
-			}, (err) => {
-				vscode.window.showErrorMessage(err.message);
-			});
-		}));
-	} else {
-		context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', () => {
-			vscode.window.showQuickPick<snippetmgr.ISnippetQPItem>(snippetmgr.getSnippetQuickPickItems(), { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" }).then(
-				(item: snippetmgr.ISnippetQPItem | undefined) => {
-					if (item !== undefined) {
-						vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' }).then(function (seperator) {
-							if (seperator !== undefined) {
-								item.getSnippetText().then((text) => {
-									applySplitReplaceTransform(text, seperator);																														
-								});
-							}
-						});
-					}
-				}, (err) => {
-					vscode.window.showErrorMessage(err.message);
+	const bIsOldVersion:boolean = isOldVersion();
+	
+	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', async () => {
+		
+		try {
+			
+			// Small BugFix, the old version does not handle a rejected promise in QuickPick well
+			const items = bIsOldVersion ? await snippetmgr.getSnippetQuickPickItems() : snippetmgr.getSnippetQuickPickItems();
+			const choosenItem = await vscode.window.showQuickPick<snippetmgr.ISnippetQPItem>(items, { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" });
+				
+			if (choosenItem !== undefined) {
+	
+				const seperator = await vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' });
+	
+				if (seperator !== undefined) {
+					const snippetText = await choosenItem.getSnippetText();
+					applySplitReplaceTransform(snippetText, seperator);
 				}
-			);
-		}));
-	}
+
+			}
+
+		} catch (err) {
+			vscode.window.showErrorMessage(err.message);
+		}
+			
+	}));
 
 }
 
