@@ -4,7 +4,8 @@ import * as os from 'os';
 
 interface IParsedSnippetFile {
     filename:string;
-    snippetMap:any;
+    readError?:Error;
+    snippetMap?:any;
 }
 
 export interface ISnippetQPItem extends vscode.QuickPickItem {
@@ -51,6 +52,21 @@ class SnippetDocumentQPItem implements ISnippetQPItem {
         return Promise.resolve(this.document.getText());
     }
 }
+
+class SnippetErrorQPItem implements ISnippetQPItem {
+    label:string;
+    detail:string;
+    description:string;
+    constructor(filename:string, errormessage:string) {
+        this.label = '---';
+        this.description = '(' + filename + ')';
+        this.detail = errormessage;
+    }
+    getSnippetText():Thenable<string> {
+        return Promise.reject(new Error(this.detail + "\r\n" + this.description));
+    }
+}
+
 
 // Taken from: https://github.com/tariky/easy-snippet-maker/commit/800e0be27516aac5f3ca1fd6719bcd772e35f0bf
 function pickingRelease(name:string) {
@@ -105,7 +121,7 @@ function getParsedSnippetFiles():IParsedSnippetFile[] {
             const jsnonobject = JSON.parse(fs.readFileSync(userSnippetsFile).toString());
             result.push({filename: userSnippetsFile, snippetMap:jsnonobject});
         } catch (je) {
-            throw new Error(f.toString() + " : " + je.message);
+            result.push({filename: userSnippetsFile, readError: je});
         }
     }); 
 
@@ -145,10 +161,14 @@ export function getSnippetQuickPickItems():Thenable<ISnippetQPItem[]> {
             const parsedFiles = getParsedSnippetFiles();
 
             parsedFiles.forEach(file => {
-                const obj = file.snippetMap;                        
-                for (let key in obj) {
-                    items.push(new SnippetUserCodeQPItem(file.filename, key, obj[key]));
-                }                        
+                if (file.readError === undefined) {
+                    const obj = file.snippetMap;                        
+                    for (let key in obj) {
+                        items.push(new SnippetUserCodeQPItem(file.filename, key, obj[key]));
+                    }                        
+                } else { 
+                    items.push(new SnippetErrorQPItem(file.filename, file.readError.message));
+                }
             });
 
             resolve(items);

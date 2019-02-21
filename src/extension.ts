@@ -96,11 +96,10 @@ export function activate(context: vscode.ExtensionContext) {
 			const choosenItem = await vscode.window.showQuickPick<snippetmgr.ISnippetQPItem>(items, { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" });
 				
 			if (choosenItem !== undefined) {
-	
+				const snippetText = await choosenItem.getSnippetText(); // Trigger error before asking for the seperator
 				const seperator = await vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' });
 	
 				if (seperator !== undefined) {
-					const snippetText = await choosenItem.getSnippetText();
 					applySplitReplaceTransform(snippetText, seperator);
 				}
 
