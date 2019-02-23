@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as os from 'os';
+import * as JSONC from 'jsonc-parser';
 
 interface IParsedSnippetFile {
     filename:string;
@@ -118,7 +119,7 @@ function getParsedSnippetFiles():IParsedSnippetFile[] {
     fs.readdirSync(filedir).forEach(f => {
         const userSnippetsFile = filedir + f.toString();
         try {
-            const jsnonobject = JSON.parse(fs.readFileSync(userSnippetsFile).toString());
+            const jsnonobject = JSONC.parse(fs.readFileSync(userSnippetsFile).toString());
             result.push({filename: userSnippetsFile, snippetMap:jsnonobject});
         } catch (je) {
             result.push({filename: userSnippetsFile, readError: je});
