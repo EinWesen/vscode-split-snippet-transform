@@ -6,6 +6,7 @@ It allowes me to apply some kind of snippet-like template to structured data, ef
 
 # Features
 * Insert the current contents of the clipboard as a snippet
+* Insert the content of an open file as snippet
 * Apply a snippet to a selection, which will be split by a delimiter, and each split is made available as variable in the snippet
    * This feature can be used with one of the feature mentioned above 
 
@@ -25,16 +26,18 @@ Copy it to the clipboard and create your structured data like
 
 Select each line with one individual cursor and apply the snippet with the command in the command palette.
 
-# Important hints / How it works
-As far as i know VSC own snippet system does not provide a way to specify different snippet values for different cursors.
-When applying a snippet to structured data this plugin works around this limition by using the following worflow, if there is more than one selection:
+# How it works
+Before actually applying a the choosen snippet, the snippet Text is parsed itself for the special split variables, which in turn get replaced by appropriate replacement transforms supported by VSCode. Which enables full snippet functionality -  woohooo.
+
+# Fallback option / How it worked before
+Before Using the variable transformations, the extension worked differently by doing the neccessary replacemenmts itself. This behaviour can still be reproduced by setting "einwesen.split-snippet-transform.useNativeTransform" to "false". In that case the extension like this, if there is more than one selection:
 
 * Get the snippet contents
 * Loop through all selections
     * Split the selection by a delimiter and for every found split replace the corresponding var name in teh string
     * Replace the selection with the result
 
-While this works well (for me ;]), it also has the following caveats:
+While this worked well (for me ;]), it also has the following caveats:
 * The usual variables available in snippets can not be used
 * As we don't really insert a snippet, all functionality based on it like placeholders is not available
 * I don't know how this performs on large datasets
