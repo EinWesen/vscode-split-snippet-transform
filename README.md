@@ -30,11 +30,11 @@ Select each line with one individual cursor and apply the snippet with the comma
 Before actually applying a the choosen snippet, the snippet Text is parsed itself for the special split variables, which in turn get replaced by appropriate replacement transforms supported by VSCode. Which enables full snippet functionality -  woohooo.
 
 # Fallback option / How it worked before
-Before Using the variable transformations, the extension worked differently by doing the neccessary replacemenmts itself. This behaviour can still be reproduced by setting "einwesen.split-snippet-transform.useNativeTransform" to "false". In that case the extension like this, if there is more than one selection:
+Before Using the variable transformations, the extension worked differently by doing the neccessary replacemenmts itself. This behaviour can still be reproduced by setting "einwesen.split-snippet-transform.useNativeTransform" to "false". In that case the extension works like this, if there is more than one selection:
 
 * Get the snippet contents
 * Loop through all selections
-    * Split the selection by a delimiter and for every found split replace the corresponding var name in teh string
+    * Split the selection by a delimiter and for "part"/"split" found replace the corresponding var name in the string
     * Replace the selection with the result
 
 While this worked well (for me ;]), it also has the following caveats:
