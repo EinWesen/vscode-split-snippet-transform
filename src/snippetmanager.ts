@@ -116,15 +116,17 @@ function getParsedSnippetFiles():IParsedSnippetFile[] {
     const result:IParsedSnippetFile[] = [];        
     const filedir = extansionPath + "snippets"+delimiter;
 
-    fs.readdirSync(filedir).forEach(f => {
-        const userSnippetsFile = filedir + f.toString();
-        try {
-            const jsnonobject = JSONC.parse(fs.readFileSync(userSnippetsFile).toString());
-            result.push({filename: userSnippetsFile, snippetMap:jsnonobject});
-        } catch (je) {
-            result.push({filename: userSnippetsFile, readError: je});
-        }
-    }); 
+    if (fs.existsSync(filedir)) {
+        fs.readdirSync(filedir).forEach(f => {
+            const userSnippetsFile = filedir + f.toString();
+            try {
+                const jsnonobject = JSONC.parse(fs.readFileSync(userSnippetsFile).toString());
+                result.push({filename: userSnippetsFile, snippetMap:jsnonobject});
+            } catch (je) {
+                result.push({filename: userSnippetsFile, readError: je});
+            }
+        }); 
+    }
 
     return result;
 }   
