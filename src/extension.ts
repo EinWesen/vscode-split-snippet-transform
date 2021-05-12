@@ -77,6 +77,53 @@ function isOldVersion():boolean {
 
 }
 
+async function getCurrentSeperator() {
+	return vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' });
+}
+
+function moveSelectionsToNextBoundary(direction:number, seperator:string) {
+			
+	const editor = vscode.window.activeTextEditor;
+	if (editor !== undefined) {
+		
+		var changes = 0, searchFunction = undefined;						
+		if (editor.selections.length > 0) {
+			
+			// May be microoptimisation, but this means we don't have to check direction for every selection
+			switch(direction) {
+				case 1:
+					searchFunction = (data:string, searchString:string, position:number) => data.indexOf(searchString, position);
+					break;
+				case -1:
+					searchFunction = (data:string, searchString:string, position:number) => data.lastIndexOf(searchString, position);
+					break;
+				default:
+					throw "moveSelectionsToNextBoundary("+direction+"): direction unknown";
+			}
+			
+			for (var iSelection=0; iSelection < editor.selections.length; iSelection++) {
+				const selection = editor.selections[iSelection];
+				const nextOccurence = searchFunction(editor.document.lineAt(selection.active.line).text, "|",selection.active.character);
+				if (nextOccurence > -1) {
+					if (selection.isEmpty) {
+						const target = selection.active.with(undefined, nextOccurence);
+						editor.selections[iSelection] = new vscode.Selection(target, target);
+					} else {
+						editor.selections[iSelection] = new vscode.Selection(selection.anchor, selection.active.with(undefined, nextOccurence));
+					}
+					changes++;
+				}
+			}
+
+			if (changes>0) {
+				// This triggers actually changing the selections
+				editor.selections = editor.selections;
+			}
+		} 
+	}			
+
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -97,7 +144,7 @@ export function activate(context: vscode.ExtensionContext) {
 				
 			if (choosenItem !== undefined) {
 				const snippetText = await choosenItem.getSnippetText(); // Trigger error before asking for the seperator
-				const seperator = await vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' });
+				const seperator = await getCurrentSeperator();
 	
 				if (seperator !== undefined) {
 					applySplitReplaceTransform(snippetText, seperator);
@@ -110,6 +157,29 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 			
 	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.cursorBoundarySelectLeft', async () => {
+		try {
+			const seperator = await getCurrentSeperator();
+			if (seperator != undefined) {
+				moveSelectionsToNextBoundary(-1, seperator);
+			}
+		} catch (err) {
+			vscode.window.showErrorMessage(err.message);
+		}					
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.cursorBoundarySelectRight', async () => {
+		try {
+			const seperator = await getCurrentSeperator();
+			if (seperator != undefined) {
+				moveSelectionsToNextBoundary(1, seperator);
+			}
+		} catch (err) {
+			vscode.window.showErrorMessage(err.message);
+		}					
+	}));
+
 
 }
 

@@ -4,11 +4,11 @@
 	"description": "Split a selection and use its part in a snippet like manner",
 	"publisher": "EinWesen",
 	"license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/EinWesen/vscode-split-snippet-transform"
-    },	
-	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/EinWesen/vscode-split-snippet-transform"
+	},
+	"version": "1.1.0",
 	"engines": {
 		"vscode": "^1.24.1"
 	},
@@ -16,15 +16,25 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:einwesen.split-snippet-transform.commands.insert_snippet"
+		"onCommand:einwesen.split-snippet-transform.commands.insert_snippet",
+		"onCommand:einwesen.split-snippet-transform.commands.cursorBoundarySelectLeft",
+		"onCommand:einwesen.split-snippet-transform.commands.cursorBoundarySelectRight"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [ 	
+		"commands": [
 			{
 				"command": "einwesen.split-snippet-transform.commands.insert_snippet",
 				"title": "Insert Snippet: ... with SplitTransform"
-			}
+			},
+			{
+				"command": "einwesen.split-snippet-transform.commands.cursorBoundarySelectLeft",
+				"title": "Move Selection to previous boundary ..."
+			},
+			{
+				"command": "einwesen.split-snippet-transform.commands.cursorBoundarySelectRight",
+				"title": "Move Selection to next boundary ..."
+			}		
 		],
 		"configuration": {
 			"type": "object",
@@ -44,9 +54,9 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Show the open documents as available snippets in the list"
-				}								
+				}
 			}
-		}		
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -59,10 +69,10 @@
 		"jsonc-parser": "2.0.3"
 	},
 	"devDependencies": {
-		"typescript": "^3.1.4",
-		"vscode": "^1.1.25",
-		"tslint": "^5.8.0",
+		"@types/mocha": "^2.2.42",
 		"@types/node": "^8.10.25",
-		"@types/mocha": "^2.2.42"
+		"tslint": "^5.8.0",
+		"typescript": "^3.1.4",
+		"vscode": "^1.1.25"
 	}
 }
