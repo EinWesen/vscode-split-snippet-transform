@@ -122,8 +122,8 @@ function getParsedSnippetFiles():IParsedSnippetFile[] {
             try {
                 const jsnonobject = JSONC.parse(fs.readFileSync(userSnippetsFile).toString());
                 result.push({filename: userSnippetsFile, snippetMap:jsnonobject});
-            } catch (je) {
-                result.push({filename: userSnippetsFile, readError: je});
+            } catch (je:any) {                
+                result.push({filename: userSnippetsFile, readError: new Error(je.message)});
             }
         }); 
     }

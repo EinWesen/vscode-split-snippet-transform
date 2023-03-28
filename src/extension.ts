@@ -101,23 +101,26 @@ function moveSelectionsToNextBoundary(direction:number, seperator:string) {
 					throw "moveSelectionsToNextBoundary("+direction+"): direction unknown";
 			}
 			
+			let newSelections : vscode.Selection[] = new Array();
 			for (var iSelection=0; iSelection < editor.selections.length; iSelection++) {
 				const selection = editor.selections[iSelection];
 				const nextOccurence = searchFunction(editor.document.lineAt(selection.active.line).text, "|",selection.active.character);
 				if (nextOccurence > -1) {
 					if (selection.isEmpty) {
-						const target = selection.active.with(undefined, nextOccurence);
-						editor.selections[iSelection] = new vscode.Selection(target, target);
+						const target = selection.active.with(undefined, nextOccurence);						
+						newSelections[iSelection] = new vscode.Selection(target, target);
 					} else {
-						editor.selections[iSelection] = new vscode.Selection(selection.anchor, selection.active.with(undefined, nextOccurence));
+						newSelections[iSelection] = new vscode.Selection(selection.anchor, selection.active.with(undefined, nextOccurence));
 					}
 					changes++;
+				} else {
+					newSelections[iSelection] = selection;
 				}
 			}
 
 			if (changes>0) {
 				// This triggers actually changing the selections
-				editor.selections = editor.selections;
+				editor.selections = newSelections;
 			}
 		} 
 	}			
@@ -152,7 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 			}
 
-		} catch (err) {
+		} catch (err:any) {
 			vscode.window.showErrorMessage(err.message);
 		}
 			
@@ -164,7 +167,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (seperator != undefined) {
 				moveSelectionsToNextBoundary(-1, seperator);
 			}
-		} catch (err) {
+		} catch (err:any) {
 			vscode.window.showErrorMessage(err.message);
 		}					
 	}));
@@ -175,7 +178,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (seperator != undefined) {
 				moveSelectionsToNextBoundary(1, seperator);
 			}
-		} catch (err) {
+		} catch (err:any) {
 			vscode.window.showErrorMessage(err.message);
 		}					
 	}));
