@@ -1,0 +1,9 @@
+{
+	 "TM_SELECTED_TEXT[]": {
+	 	"scope": "plaintext",
+	 	"prefix": "$TM",
+	 	"body": ["\\${TM_SELECTED_TEXT[${1:0}]}",
+	 	],
+	 	"description": "Splittransformvariable"
+	}
+}

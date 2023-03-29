@@ -56,7 +56,13 @@
 					"description": "Show the open documents as available snippets in the list"
 				}
 			}
-		}
+		},
+		"snippets": [
+			{
+			  "language": "plaintext",
+			  "path": "./snippets/plaintext_snippets.json"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
