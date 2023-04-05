@@ -54,7 +54,12 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Show the open documents as available snippets in the list"
-				}
+				},
+				"einwesen.split-snippet-transform.showSnippetFiles": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show Snippets from user files"
+				}				
 			}
 		},
 		"snippets": [

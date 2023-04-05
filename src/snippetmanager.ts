@@ -134,51 +134,56 @@ function getParsedSnippetFiles():IParsedSnippetFile[] {
 export function getSnippetQuickPickItems():Thenable<ISnippetQPItem[]> {
     
     const items:ISnippetQPItem[] = [];
-
-    if (vscode.env.clipboard) {
-        if (vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('showClipboardAsSnippet')) {
-            items.push(new SnippetClipboardQPItem());
-        }
-    }
     
-    if (vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('showDocumentsAsSnippet')) {
-        vscode.workspace.textDocuments.forEach((document, index) => {
-            if (!document.isClosed && document.fileName !== '/global-snippets') {                
-                
-                if (document.uri.scheme === 'untitled' || document.uri.scheme === 'file') {
-                    if (vscode.window.activeTextEditor !== undefined) {                
-                        if (vscode.window.activeTextEditor.document !== document) {
+    const promiseSnippets = new Promise<ISnippetQPItem[]>((resolve, reject) => {
+
+        if (vscode.env.clipboard) {
+            if (vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('showClipboardAsSnippet')) {
+                items.push(new SnippetClipboardQPItem());
+            }
+        }
+        
+        if (vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('showDocumentsAsSnippet')) {
+            vscode.workspace.textDocuments.forEach((document, index) => {
+                if (!document.isClosed && document.fileName !== '/global-snippets') {                
+                    
+                    if (document.uri.scheme === 'untitled' || document.uri.scheme === 'file') {
+                        if (vscode.window.activeTextEditor !== undefined) {                
+                            if (vscode.window.activeTextEditor.document !== document) {
+                                items.push(new SnippetDocumentQPItem(document, index));
+                            }
+                        } else {
                             items.push(new SnippetDocumentQPItem(document, index));
                         }
-                    } else {
-                        items.push(new SnippetDocumentQPItem(document, index));
-                    }
-                }                 
-            } 
-        });
-    }
-
-    const promiseFiles = new Promise<ISnippetQPItem[]>((resolve, reject) => {
-        
-        try {
-            const parsedFiles = getParsedSnippetFiles();
-
-            parsedFiles.forEach(file => {
-                if (file.readError === undefined) {
-                    const obj = file.snippetMap;                        
-                    for (let key in obj) {
-                        items.push(new SnippetUserCodeQPItem(file.filename, key, obj[key]));
-                    }                        
-                } else { 
-                    items.push(new SnippetErrorQPItem(file.filename, file.readError.message));
-                }
+                    }                 
+                } 
             });
+        }
+        
+        if (vscode.workspace.getConfiguration('einwesen.split-snippet-transform').get('showSnippetFiles')) {
+            try {
+                const parsedFiles = getParsedSnippetFiles();
 
+                parsedFiles.forEach(file => {
+                    if (file.readError === undefined) {
+                        const obj = file.snippetMap;                        
+                        for (let key in obj) {
+                            items.push(new SnippetUserCodeQPItem(file.filename, key, obj[key]));
+                        }                        
+                    } else { 
+                        items.push(new SnippetErrorQPItem(file.filename, file.readError.message));
+                    }
+                });
+
+                resolve(items);
+            } catch (e) {
+                reject(e);
+            }
+
+        } else {
             resolve(items);
-        } catch (e) {
-            reject(e);
         }
     });
 
-    return promiseFiles;
+    return promiseSnippets;
 }
