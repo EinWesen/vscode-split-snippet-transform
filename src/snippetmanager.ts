@@ -20,7 +20,7 @@ class SnippetUserCodeQPItem implements ISnippetQPItem {
     detail:string;
     constructor(file:string, name:string, item: any) {
         this.snippetBody = item.body;
-        this.label = item.prefix;
+        this.label = `$(symbol-snippet) ${name}`;
         this.description = "(" + file + ")";
         this.detail = item.description;
     }
@@ -30,8 +30,8 @@ class SnippetUserCodeQPItem implements ISnippetQPItem {
 }
 
 class SnippetClipboardQPItem implements ISnippetQPItem {
-    label = '[Clipboard]';
-    description = '';
+    label = `$(clippy)`;
+    description = '[Clipboard]';
     detail = 'The whole current content will be used';
     getSnippetText():Thenable<string> {
         return vscode.env.clipboard.readText();
@@ -45,8 +45,8 @@ class SnippetDocumentQPItem implements ISnippetQPItem {
     detail:string;
     constructor(doc:vscode.TextDocument, index:number) {
         this.document = doc;
-        this.label = 'TabContent ('+index+')';
-        this.description = "(" + doc.fileName + ")";
+        this.label = `$(default-view-icon) ${doc.fileName}`;
+        this.description = `TabContent (${index})`
         this.detail = 'The whole current content will be used';
     }
     getSnippetText():Thenable<string> {
