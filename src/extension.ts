@@ -65,18 +65,6 @@ function applySplitReplaceTransform(snippetText: string, seperator: string) {
 	
 }
 
-function isOldVersion():boolean {
-
-	let parts = vscode.version.split(".");
-
-	if (parts[0] === "1") {
-		return parseInt(parts[1])<=24;
-	} else {
-		return false;
-	}
-
-}
-
 async function getCurrentSeperator() {
 	return vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' });
 }
@@ -135,14 +123,11 @@ export function activate(context: vscode.ExtensionContext) {
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 
-	const bIsOldVersion:boolean = isOldVersion();
-	
 	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.insert_snippet', async () => {
 		
 		try {
 			
-			// Small BugFix, the old version does not handle a rejected promise in QuickPick well
-			const items = bIsOldVersion ? await snippetmgr.getSnippetQuickPickItems() : snippetmgr.getSnippetQuickPickItems();
+			const items = snippetmgr.getSnippetQuickPickItems();
 			const choosenItem = await vscode.window.showQuickPick<snippetmgr.ISnippetQPItem>(items, { canPickMany: false, matchOnDescription: true, matchOnDetail: true, placeHolder: "snippet?" });
 				
 			if (choosenItem !== undefined) {
