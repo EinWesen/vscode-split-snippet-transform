@@ -65,8 +65,15 @@ function applySplitReplaceTransform(snippetText: string, seperator: string) {
 	
 }
 
-async function getCurrentSeperator() {
-	return vscode.window.showInputBox({ prompt: 'Insert seperator', value: '|' });
+let lastUsedSeperator:string|undefined = undefined;
+async function getCurrentSeperator(getLast:boolean=false):Promise<string | undefined> {
+	if (getLast && lastUsedSeperator!= undefined) return lastUsedSeperator;
+	return vscode.window.showInputBox({ prompt: 'Insert seperator', value: (lastUsedSeperator != undefined ? lastUsedSeperator: '|')}).then((value) => {
+		if (value != undefined) {
+			lastUsedSeperator = value;
+		}
+		return value;
+	});
 }
 
 function moveSelectionsToNextBoundary(direction:number, seperator:string) {
@@ -132,7 +139,7 @@ export function activate(context: vscode.ExtensionContext) {
 				
 			if (choosenItem !== undefined) {
 				const snippetText = await choosenItem.getSnippetText(); // Trigger error before asking for the seperator
-				const seperator = await getCurrentSeperator();
+				const seperator = await getCurrentSeperator(false);
 	
 				if (seperator !== undefined) {
 					applySplitReplaceTransform(snippetText, seperator);
@@ -148,7 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.cursorBoundarySelectLeft', async () => {
 		try {
-			const seperator = await getCurrentSeperator();
+			const seperator = await getCurrentSeperator(true);
 			if (seperator != undefined) {
 				moveSelectionsToNextBoundary(-1, seperator);
 			}
@@ -159,7 +166,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('einwesen.split-snippet-transform.commands.cursorBoundarySelectRight', async () => {
 		try {
-			const seperator = await getCurrentSeperator();
+			const seperator = await getCurrentSeperator(true);
 			if (seperator != undefined) {
 				moveSelectionsToNextBoundary(1, seperator);
 			}
