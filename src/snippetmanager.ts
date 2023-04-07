@@ -73,48 +73,48 @@ class SnippetErrorQPItem implements ISnippetQPItem {
 function pickingRelease(name:string) {
     const osName = os.type();
     let delimiter = "/";
-    let extansionPath;
+    let extensionPath;
 
     switch (osName) {
         case ("Darwin"): {
-            extansionPath = process.env.HOME + "/Library/Application Support/" + name + "/User/";
+            extensionPath = process.env.HOME + "/Library/Application Support/" + name + "/User/";
             break;
         }
         case ("Linux"): {
-            extansionPath = process.env.HOME + "/.config/" + name + "/User/";
+            extensionPath = process.env.HOME + "/.config/" + name + "/User/";
             break;
         }
         case ("Windows_NT"): {
-            extansionPath = process.env.APPDATA + "\\" + name + "\\User\\";
+            extensionPath = process.env.APPDATA + "\\" + name + "\\User\\";
             delimiter = "\\";
             break;
         }
         default: {
-            extansionPath = process.env.HOME + "/.config/" + name + "/User/";
+            extensionPath = process.env.HOME + "/.config/" + name + "/User/";
             break;
         }
     }
 
-    return [extansionPath,delimiter];
+    return [extensionPath,delimiter];
 }
 
 function getParsedSnippetFiles():IParsedSnippetFile[] {
     
-    let extansionPath:string;
+    let extensionPath:string;
     let delimiter = "/";
 
     let vscodeRelease = vscode.env.appName;
 
     // Check for insider version
     if (vscodeRelease === "Visual Studio Code - Insiders") {
-        [extansionPath, delimiter] = pickingRelease("Code - Insiders");
+        [extensionPath, delimiter] = pickingRelease("Code - Insiders");
     } else {
-        [extansionPath, delimiter] = pickingRelease("Code");
+        [extensionPath, delimiter] = pickingRelease("Code");
     }
 
 
     const result:IParsedSnippetFile[] = [];        
-    const filedir = extansionPath + "snippets"+delimiter;
+    const filedir = extensionPath + "snippets"+delimiter;
 
     if (fs.existsSync(filedir)) {
         fs.readdirSync(filedir).forEach(f => {
