@@ -8,14 +8,14 @@ function replaceSplitVars(selectionText:string, snippetText: string, seperator: 
 	
 	if (selectionText.length > 0) {
 		const selectionParts: string[] = selectionText.split(seperator);
-			
-		selectionText = snippetText;
+					
+		let resultText = snippetText;
 		for (var i = 0; i < selectionParts.length; i++) {
 			const varname = "${TM_SELECTED_TEXT[" + i + "]}";
-			selectionText = selectionText.replace(varname, selectionParts[i]);
-		}
+			resultText = resultText.replace(varname, selectionParts[i]);
+		}		
 	
-		return selectionText;
+		return resultText.replace("$TM_SELECTED_TEXT", selectionText).replace("${TM_SELECTED_TEXT}", selectionText);
 	} else {
 		return snippetText;
 	}
@@ -50,15 +50,16 @@ function applySplitReplaceTransform(snippetText: string, seperator: string) {
 			editor.insertSnippet(new vscode.SnippetString(convertSplitVars(snippetText, seperator)), editor.selections);
 		} else {
 			if (editor.selections.length > 0) {
-				if (editor.selections.length === 1) {
-					editor.insertSnippet(new vscode.SnippetString(replaceSplitVars(editor.document.getText(editor.selection), snippetText, seperator)));
-				} else {
+				// Because of https://github.com/microsoft/vscode/issues/206121 we are even doing this ourselves for now					
+				// if (editor.selections.length === 1) {
+				// 	editor.insertSnippet(new vscode.SnippetString(replaceSplitVars(editor.document.getText(editor.selection), snippetText, seperator)));					
+				// } else {
 					editor.edit((editBuilder) => {
 						editor.selections.forEach((selection) => {
 							editBuilder.replace(selection, replaceSplitVars(editor.document.getText(selection), snippetText, seperator));
 						});
 					});
-				}	
+				// }	
 			}
 		}	
 	}
