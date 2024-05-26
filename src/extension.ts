@@ -11,11 +11,11 @@ function replaceSplitVars(selectionText:string, snippetText: string, seperator: 
 					
 		let resultText = snippetText;
 		for (var i = 0; i < selectionParts.length; i++) {
-			const varname = "${TM_SELECTED_TEXT[" + i + "]}";
-			resultText = resultText.replace(varname, selectionParts[i]);
+			const varname_regex = new RegExp("\\$\\{TM_SELECTED_TEXT\\[" + i + "\\]\\}", 'g')
+			resultText = resultText.replace(varname_regex, selectionParts[i]);
 		}		
 	
-		return resultText.replace("$TM_SELECTED_TEXT", selectionText).replace("${TM_SELECTED_TEXT}", selectionText);
+		return resultText.replace(/\$TM_SELECTED_TEXT/g, selectionText).replace(/\$\{TM_SELECTED_TEXT\}/g, selectionText);
 	} else {
 		return snippetText;
 	}
